@@ -91,7 +91,7 @@ GAS_LIMIT_KEY: "gasLimit"
 
 # --- Severity (counts -> Low/Medium/High) ---
 Severity_limits:
-  heigh: 3                          # (spelling intentionally "heigh" in code)
+  high: 3                          
   medium: 2
 
 # --- If your log lacks a per-event user, derive it from a trace attribute ---
