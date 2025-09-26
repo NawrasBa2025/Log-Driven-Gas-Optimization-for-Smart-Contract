@@ -1,6 +1,8 @@
-# Smart Contract Analyzer
+# Log-Driven-Gas-Optimization-for-Smart-Contracts
 
-A lightweight Python tool that scans Smart Contracts event logs in XES-Format and highlights optimization opportunities and anti-patterns. It generates a clean PDF report with grouped findings, quick charts, and (optionally) discovered process models.
+Log-Driven Gas Optimization for Smart Contracts is a local, YAML-configured Python tool that analyzes smart-contract event logs in XES (.xes / .xes.gz) to surface gas-saving opportunities and produce a deterministic, audit-friendly PDF report.
+
+See the Wiki for configuration keys and detector definitions.
 
 ---
 
