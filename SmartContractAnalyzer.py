@@ -66,8 +66,10 @@ STATUS_KEY = config.get("STATUS_KEY", "status")                        # XES key
 GAS_KEY = config.get("GAS_KEY", "gas")                                 # XES key used by out-of-gas detector
 GAS_LIMIT_KEY = config.get("GAS_LIMIT_KEY", "gasLimit")                # XES key used by out-of-gas detector
 
+LONG_TRACE_IDENTIFIER = config.get("LONG_TRACE_IDENTIFIER", "blockNumber")  # XES key used to identify long traces (for reporting)
 MAX_LONG_TRACE_SUGGESTIONS = int(config.get("MAX_LONG_TRACE_SUGGESTIONS", 5))           # How many longest traces to list in the PDF
 PERCENTILE = int(config.get("PERCENTILE", 99))                          # Percentile defining "long trace" threshold
+MAX_OUT_OF_GAS_SUGGESTIONS = int(config.get("MAX_OUT_OF_GAS_SUGGESTIONS", 10)) # Max OOG events shown in report
 
 # FEATURE FLAGS / LIMITS
 features = config.get("features", {})                                   # Toggle detectors: merge/redundancy/sequence/out_of_gas_exception
@@ -141,6 +143,9 @@ def build_param_snapshot(config, meta, runtime_ctx):
         "MAX_LONG_TRACE_SUGGESTIONS": MAX_LONG_TRACE_SUGGESTIONS,
         "MAX_SEQ_SUGGESTIONS": MAX_SEQ_SUGGESTIONS,
         "MAX_SEQUENCE_LENGTH": MAX_L,
+        "PERCENTILE": PERCENTILE,
+        "MAX_OUT_OF_GAS_SUGGESTIONS": MAX_OUT_OF_GAS_SUGGESTIONS,
+        "LONG_TRACE_IDENTIFIER": LONG_TRACE_IDENTIFIER,
         "FALLBACK_USER_FROM_TRACE": FALLBACK_USER_FROM_TRACE,
         "TRACE_USER_ATTR": TRACE_USER_ATTR,
         "features": config.get("features", {}),
@@ -183,6 +188,7 @@ def generate_analysis_and_charts(file_path):
     root = tree.getroot()
     traces = root.findall('.//trace')
 
+    trace_attrs_by_idx = {}  # NEW: keep trace-level attributes per trace
     raw_merge_suggestions = defaultdict(int)
     redundant = defaultdict(int)
     sequences = defaultdict(int)
@@ -203,6 +209,7 @@ def generate_analysis_and_charts(file_path):
                 v = child.attrib.get('value')
                 if k is not None:
                     trace_attrs[k] = v
+        trace_attrs_by_idx[idx] = trace_attrs  # NEW: store attributes for later
         fb_user = None
         if FALLBACK_USER_FROM_TRACE:
             fb_user = trace_attrs.get(TRACE_USER_ATTR) or trace_attrs.get("concept:name") or f"trace_{idx}"
@@ -226,7 +233,7 @@ def generate_analysis_and_charts(file_path):
             if features.get('out_of_gas_exception', True):
                 try:
                     # DETECTOR: OOG if tx failed (status==0x0) AND gas used hit gasLimit
-                    if status == "0x0" and gas and gas_limit and int(gas) == int(gas_limit):
+                    if (status == "0x0" or status == "false") and gas and gas_limit and int(gas) == int(gas_limit):
                         out_of_gas_events.append((activity, timestamp, gas, gas_limit))
                 except ValueError:
                     # Non-numeric gas values are ignored silently
@@ -279,10 +286,15 @@ def generate_analysis_and_charts(file_path):
                         sequences[tuple(win_act)] += 1
 
     # 5 Long traces: define threshold at chosen percentile
+    trace_length_enabled = features.get('trace_length', True)
     trace_length_threshold = int(np.percentile(trace_lengths, PERCENTILE)) if trace_lengths else 0
-    long_traces = [(idx, len(evts)) for idx, evts in trace_groups.items() if len(evts) > trace_length_threshold]
-    top_long_traces = sorted(long_traces, key=lambda x: -x[1])[:MAX_LONG_TRACE_SUGGESTIONS]
-
+    if trace_length_enabled:
+        long_traces = [(idx, len(evts)) for idx, evts in trace_groups.items()
+                       if len(evts) > trace_length_threshold]
+        top_long_traces = sorted(long_traces, key=lambda x: -x[1])[:MAX_LONG_TRACE_SUGGESTIONS]
+    else:
+        long_traces = []
+        top_long_traces = []
     # Map counts to severity buckets for reporting
     def sev_from_count(cnt):
         if cnt >= SEVERITY_LIMITS.get('heigh',3):
@@ -318,13 +330,34 @@ def generate_analysis_and_charts(file_path):
         grouped["Sequences"].append({"sev": sev, "count": count, "text": f"{count}× {' → '.join(seq)}"})
 
     if features.get('out_of_gas_exception', True):
-        for activity, timestamp, gas, gas_limit in out_of_gas_events:
-            grouped["Out-of-Gas"].append({"sev": "High", "count": 1,
-                                           "text": f"'{activity}' @ {timestamp}  (gas==gasLimit=={gas})"})
+        # Show only the most recent OOG events, capped by MAX_OUT_OF_GAS_SUGGESTIONS
+        # Sort by timestamp desc; entries with missing timestamps go last.
+        ordered_oog = sorted(
+            out_of_gas_events,
+            key=lambda t: (t[1] is None, t[1]),
+            reverse=True
+        )[:MAX_OUT_OF_GAS_SUGGESTIONS]
+        for activity, timestamp, gas, gas_limit in ordered_oog:
+            grouped["Out-of-Gas"].append({
+                "sev": "High",
+                "count": 1,
+                "text": f"'{activity}' @ {timestamp} (gas==gasLimit=={gas})"
+            })
 
     for trace_idx, length in top_long_traces:
-        grouped["Trace Length"].append({"sev": "High", "count": length,
-                                         "text": f"Trace #{trace_idx}: {length} activities (threshold {trace_length_threshold})"})
+        ident_val = trace_attrs_by_idx.get(trace_idx, {}).get(LONG_TRACE_IDENTIFIER)
+        ident_chunk = (
+            f'/ Identifier : key="{LONG_TRACE_IDENTIFIER}" value="{ident_val}"'
+            if ident_val not in (None, "")
+            else ""
+        )
+    if trace_length_enabled:
+        for trace_idx, length in top_long_traces:
+            grouped["Trace Length"].append({
+                "sev": "High",
+                "count": length,
+                "text": f"Trace #{trace_idx}: {length} activities (threshold {trace_length_threshold})"
+            })
 
     # Severity distribution for charts
     severity_levels = Counter()
@@ -336,13 +369,15 @@ def generate_analysis_and_charts(file_path):
     # Summary box for the PDF
     num_traces_above_threshold = len(long_traces)
     max_traces_to_show = min(MAX_LONG_TRACE_SUGGESTIONS, num_traces_above_threshold)
+    oog_shown = min(MAX_OUT_OF_GAS_SUGGESTIONS, len(out_of_gas_events))
     summary = {
         "Traces analyzed": len(traces),
         "Merges identified": sum(raw_merge_suggestions.values()),
-        "Redundancies identifiedn": sum(redundant.values()),
+        "Redundancies identified": sum(redundant.values()),
         "Sequences identified": f"{len(sequences)} (shown: {len(sequence_candidates)})",
-        "Out-of-Gas Exceptions": len(out_of_gas_events),
-        "Long traces": f"{num_traces_above_threshold} (shown: {max_traces_to_show})",
+        "Out-of-Gas Exceptions": f"{len(out_of_gas_events)} (shown: {oog_shown})",
+        "Long traces": (f"{num_traces_above_threshold} (shown: {max_traces_to_show})"
+                        if trace_length_enabled else "disabled"),
     }
     meta = {"trace_length_threshold": trace_length_threshold, "trace_length_percentile": PERCENTILE}
 
