@@ -1,0 +1,145 @@
+LOG_FILE_PATH: ./your-file.xes
+OUTPUT_NAME: analyze-summery.json
+TIMESTAMP_KEY: time:timestamp
+ACTIVITY_KEY: concept:name
+USER_KEY: org:resource
+NUM_LONGEST_TRACES: 20
+STATUS_KEY: status
+GAS_KEY: gas
+GAS_LIMIT_KEY: gasLimit
+features:
+  merge: true
+  redundancy: true
+  trace_length: true
+  sequence: true
+  out_of_gas_exception: true
+miners:
+  - type: frequency
+    key: concept:name
+  - type: users
+    key: org:resource
+
+# Controls for sequence mining limits, fallbacks, etc.
+maximal_sequence_suggestion: 10000
+FALLBACK_USER_FROM_TRACE: true
+TRACE_USER_ATTR: concept:name
+
+# Default percentile for percentile-based stats (can be overridden per run)
+PERCENTILE: 99.99
+
+runs:
+  - name: R1
+    TIME_THRESHOLD_SECONDS: 10
+    MAX_SEQUENCE_LENGTH: 5
+    # PERCENTILE: 95  # (optional per-run override)
+    PERCENTILE: 81  # (optional per-run override)
+
+  - name: R2
+    TIME_THRESHOLD_SECONDS: 20
+    MAX_SEQUENCE_LENGTH: 5
+    PERCENTILE: 84
+
+  - name: R3
+    TIME_THRESHOLD_SECONDS: 30
+    MAX_SEQUENCE_LENGTH: 5
+    PERCENTILE: 87
+
+  - name: R4
+    TIME_THRESHOLD_SECONDS: 60
+    MAX_SEQUENCE_LENGTH: 5
+    PERCENTILE: 90
+
+  - name: R5
+    TIME_THRESHOLD_SECONDS: 120
+    MAX_SEQUENCE_LENGTH: 5
+    PERCENTILE: 93
+
+  - name: R6
+    TIME_THRESHOLD_SECONDS: 180
+    MAX_SEQUENCE_LENGTH: 5
+    PERCENTILE: 96
+
+  - name: R7
+    TIME_THRESHOLD_SECONDS: 300
+    MAX_SEQUENCE_LENGTH: 5
+    PERCENTILE: 99
+
+  - name: R8
+    TIME_THRESHOLD_SECONDS: 600
+    MAX_SEQUENCE_LENGTH: 5
+
+  - name: R9
+    TIME_THRESHOLD_SECONDS: 900
+    MAX_SEQUENCE_LENGTH: 5
+
+  - name: R10
+    TIME_THRESHOLD_SECONDS: 1200
+    MAX_SEQUENCE_LENGTH: 5
+
+  - name: R11
+    TIME_THRESHOLD_SECONDS: 1800
+    MAX_SEQUENCE_LENGTH: 5
+
+  - name: R12
+    TIME_THRESHOLD_SECONDS: 3600
+    MAX_SEQUENCE_LENGTH: 5
+
+  - name: R13
+    TIME_THRESHOLD_SECONDS: 10
+    MAX_SEQUENCE_LENGTH: 7
+
+  - name: R14
+    TIME_THRESHOLD_SECONDS: 20
+    MAX_SEQUENCE_LENGTH: 7
+
+  - name: R15
+    TIME_THRESHOLD_SECONDS: 30
+    MAX_SEQUENCE_LENGTH: 7
+
+  - name: R16
+    TIME_THRESHOLD_SECONDS: 60
+    MAX_SEQUENCE_LENGTH: 7
+
+  - name: R17
+    TIME_THRESHOLD_SECONDS: 120
+    MAX_SEQUENCE_LENGTH: 7
+
+  - name: R18
+    TIME_THRESHOLD_SECONDS: 180
+    MAX_SEQUENCE_LENGTH: 7
+
+  - name: R19
+    TIME_THRESHOLD_SECONDS: 300
+    MAX_SEQUENCE_LENGTH: 7
+
+  - name: R20
+    TIME_THRESHOLD_SECONDS: 600
+    MAX_SEQUENCE_LENGTH: 7
+
+  - name: R21
+    TIME_THRESHOLD_SECONDS: 900
+    MAX_SEQUENCE_LENGTH: 7
+
+  - name: R22
+    TIME_THRESHOLD_SECONDS: 1200
+    MAX_SEQUENCE_LENGTH: 7
+
+  - name: R23
+    TIME_THRESHOLD_SECONDS: 1800
+    MAX_SEQUENCE_LENGTH: 7
+
+  - name: R24
+    TIME_THRESHOLD_SECONDS: 1800
+    MAX_SEQUENCE_LENGTH: 7
+
+  - name: R25
+    TIME_THRESHOLD_SECONDS: 3600
+    MAX_SEQUENCE_LENGTH: 7
+
+  - name: R26
+    TIME_THRESHOLD_SECONDS: 36000
+    MAX_SEQUENCE_LENGTH: 7
+
+  - name: R27
+    TIME_THRESHOLD_SECONDS: 86400
+    MAX_SEQUENCE_LENGTH: 7
