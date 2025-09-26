@@ -254,7 +254,7 @@ PY
 ---
 
 ## License
-Add your project license here.
+
 
 ---
 
