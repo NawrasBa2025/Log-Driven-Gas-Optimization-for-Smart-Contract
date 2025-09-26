@@ -1,37 +1,38 @@
-LOG_FILE_PATH: "./your-file.xes"
+LOG_FILE_PATH: "./yourfile.xes"
 PDF_OUTPUT_PATH: "./report.pdf"
 
 TIMESTAMP_KEY: "time:timestamp"
 ACTIVITY_KEY: "concept:name"
-USER_KEY: "requester"
-STATUS_KEY: "status"
-GAS_KEY: "gas"
-GAS_LIMIT_KEY: "gasLimit"
+USER_KEY: ""
+STATUS_KEY: ""
+GAS_KEY: ""
+GAS_LIMIT_KEY: ""
+LONG_TRACE_IDENTIFIER: ""
 
 features:
   merge: true
   redundancy: true
-  trace_length: false
+  trace_length: true
   sequence: true
-  out_of_gas_exception: false
+  out_of_gas_exception: true
 
 miners:
   alpha_miner: false
   heuristics_miner: false
-  inductive_miner: false
+  inductive_miner: true
 
 Severity_limits:
-  heigh: 3
-  medium: 2
+  heigh: 100
+  medium: 50
 
-TIME_THRESHOLD_SECONDS: 10
-MAX_SEQUENCE_LENGTH: 7
-MAX_SEQ_SUGGESTIONS: 3
-PERCENTILE: 80
+TIME_THRESHOLD_SECONDS: 60
+MAX_SEQUENCE_LENGTH: 5
+MAX_SEQ_SUGGESTIONS: 5
+PERCENTILE: 99
 MAX_LONG_TRACE_SUGGESTIONS: 5
+MAX_OUT_OF_GAS_SUGGESTIONS: 5
 
 FALLBACK_USER_FROM_TRACE: false
 TRACE_USER_ATTR: "concept:name"
-
 
 
