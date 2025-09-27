@@ -62,27 +62,26 @@ Create `config.yaml` with these following keys.
 
 ```yaml
 # --- Paths ---
-LOG_FILE_PATH: "./your-file.xes"     # .xes or .xes.gz --- there is test file your-file.xes by default 
+LOG_FILE_PATH: "./your-file.xes"      
 PDF_OUTPUT_PATH: "./report.pdf"
 
 # --- Core XES attribute keys ---
-TIMESTAMP_KEY: "time:timestamp"     # needed for timing-based detectors
-ACTIVITY_KEY: "concept:name"        # label for each event
-USER_KEY: "org:resource"            # recommended (used by merge/sequence)
+TIMESTAMP_KEY: "time:timestamp"     
+ACTIVITY_KEY: "concept:name"        
+USER_KEY: "org:resource"            
 
 # --- Detectors you want to run ---
 features:
-  merge: true                       # needs TIMESTAMP_KEY, USER_KEY, ACTIVITY_KEY
-  redundancy: true                  # needs ACTIVITY_KEY (USER_KEY recommended)
-  sequence: true                    # needs TIMESTAMP_KEY, ACTIVITY_KEY (USER_KEY recommended)
-  trace_length: true                # percentile-based (no extra attributes)
-  out_of_gas_exception: false       # set true only if your log has EVM fields
+  merge: true                        # needs TIMESTAMP_KEY, USER_KEY, ACTIVITY_KEY, TIME_THRESHOLD_SECONDS
+  redundancy: false                  # needs ACTIVITY_KEY, USER_KEY 
+  sequence: true                     # needs TIMESTAMP_KEY, USER_KEY, ACTIVITY_KEY, TIME_THRESHOLD_SECONDS, MAX_SEQUENCE_LENGTH
+  trace_length: false                # needs PERCENTILE, LONG_TRACE_IDENTIFIER
+  out_of_gas_exception: true         # needs STATUS_KEY, GAS_KEY, GAS_LIMIT_KEY
 
 # --- Thresholds (used by enabled detectors) ---
 TIME_THRESHOLD_SECONDS: 10          # merge & sequence window
 MAX_SEQUENCE_LENGTH: 7              # sequence upper bound
-PERCENTILE: 80                      # long-trace cutoff
-NUM_LONGEST_TRACES: 5               # how many long traces to list
+PERCENTILE: 99                      # long-trace cutoff
 
 # --- Only needed if you enable out_of_gas_exception ---
 STATUS_KEY: "status"
@@ -91,8 +90,8 @@ GAS_LIMIT_KEY: "gasLimit"
 
 # --- Severity (counts -> Low/Medium/High) ---
 Severity_limits:
-  high: 3                          
-  medium: 2
+  high: 100                          
+  medium: 50
 
 # --- If your log lacks a per-event user, derive it from a trace attribute ---
 FALLBACK_USER_FROM_TRACE: true
