@@ -25,7 +25,7 @@ See the Wiki for configuration keys and detector definitions.
 ## Event log datasets (XES)
 
 > **Note:** Use any of the following three smart-contract event logs as input to try the code. They come from the open collection of resources for process mining on blockchain data: https://ingo-weber.github.io/dapp-data/ 
-**Recommended:** start with **Augur** (it’s smaller than the others). With Augur you can run out-of-the-box—no YAML changes needed; the defaults already match the log (`LOG_FILE_PATH: "./augur.xes"`, `USER_KEY: "requester"`, `STATUS_KEY: "txSuccessful"`, `GAS_KEY: "gasUsed"`, `GAS_LIMIT_KEY: "gas"`, `LONG_TRACE_IDENTIFIER: "ident:piid"`).
+**Recommended:** start with **Augur** (it’s smaller than the others). With Augur you can also run right away and no YAML changes needed; the defaults already match the log (`USER_KEY: "requester"`, `STATUS_KEY: "txSuccessful"`, `GAS_KEY: "gasUsed"`, `GAS_LIMIT_KEY: "gas"`, `LONG_TRACE_IDENTIFIER: "ident:piid"`).
 
 - **Augur** — XES  
   Source: <https://ingo-weber.github.io/dapp-data/data/Augur.xes>  
