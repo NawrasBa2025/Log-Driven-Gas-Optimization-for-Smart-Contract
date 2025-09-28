@@ -61,47 +61,49 @@ The script loads `config.yaml`, processes the log, and writes the PDF report to 
 Create `config.yaml` with these following keys. 
 
 ```yaml
-# --- Paths ---
-LOG_FILE_PATH: "./your-file.xes"      
+# --- File paths ---
+LOG_FILE_PATH: "./your-log.xes"
 PDF_OUTPUT_PATH: "./report.pdf"
 
-# --- Core XES attribute keys ---
-TIMESTAMP_KEY: "time:timestamp"     
-ACTIVITY_KEY: "concept:name"        
-USER_KEY: "org:resource"            
-
-# --- Detectors you want to run ---
-features:
-  merge: true                        # needs TIMESTAMP_KEY, USER_KEY, ACTIVITY_KEY, TIME_THRESHOLD_SECONDS
-  redundancy: false                  # needs ACTIVITY_KEY, USER_KEY 
-  sequence: true                     # needs TIMESTAMP_KEY, USER_KEY, ACTIVITY_KEY, TIME_THRESHOLD_SECONDS, MAX_SEQUENCE_LENGTH
-  trace_length: false                # needs PERCENTILE, LONG_TRACE_IDENTIFIER
-  out_of_gas_exception: true         # needs STATUS_KEY, GAS_KEY, GAS_LIMIT_KEY
-
-# --- Thresholds (used by enabled detectors) ---
-TIME_THRESHOLD_SECONDS: 10          # merge & sequence window
-MAX_SEQUENCE_LENGTH: 7              # sequence upper bound
-PERCENTILE: 99                      # long-trace cutoff
-
-# --- Only needed if you enable out_of_gas_exception ---
+# --- XES attribute keys (remap to match your log) ---
+TIMESTAMP_KEY: "time:timestamp"
+ACTIVITY_KEY: "concept:name"
+USER_KEY: "org:resource"
 STATUS_KEY: "status"
 GAS_KEY: "gas"
 GAS_LIMIT_KEY: "gasLimit"
+LONG_TRACE_IDENTIFIER: "ident:piid"
 
-# --- Severity (counts -> Low/Medium/High) ---
+# --- Feature flags (enable/disable detectors) ---
+features:
+  merge: true
+  redundancy: true
+  trace_length: true
+  sequence: true
+  out_of_gas_exception: false
+
+# --- Miner toggles (optional process models pages) ---
+miners:
+  alpha_miner: false
+  heuristics_miner: false
+  inductive_miner: false
+
+# --- Severity bucketing (counts -> Low/Medium/High) ---
 Severity_limits:
-  high: 100                          
-  medium: 50
+  high: 3
+  medium: 2
 
-# --- If your log lacks a per-event user, derive it from a trace attribute ---
-FALLBACK_USER_FROM_TRACE: true
+# --- Detector thresholds & limits ---
+TIME_THRESHOLD_SECONDS: 10
+MAX_SEQUENCE_LENGTH: 7
+MAX_SEQ_SUGGESTIONS: 3
+PERCENTILE: 80
+NUM_LONGEST_TRACES: 5
+MAX_OUT_OF_GAS_SUGGESTIONS: 5
+
+# --- User fallback (when USER_KEY is missing) ---
+FALLBACK_USER_FROM_TRACE: false
 TRACE_USER_ATTR: "concept:name"
-
-# --- Miner pages (require Graphviz) ---
- miners:
-    alpha_miner: false
-    heuristics_miner: false
-    inductive_miner: false
 ```
 
 
