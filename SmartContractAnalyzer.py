@@ -345,7 +345,6 @@ def generate_analysis_and_charts(file_path):
             })
 
     if trace_length_enabled:
-        # Use the richer entry text from Version A (with trace index + optional identifier)
         for trace_idx, length in top_long_traces:
             ident_val = trace_attrs_by_idx.get(trace_idx, {}).get(LONG_TRACE_IDENTIFIER)
             ident_chunk = (
@@ -533,11 +532,10 @@ def analyze_event_log(xes_path):
 # Page 1
 #   - Title
 #   - Grouped findings (Merges, Sequences, Redundancy, Trace Length, Out-of-Gas))
-#   - Extra spacing
 #   - Summary table
 # Following pages
-#   - One image per page (charts and process models), with optional metrics table
-# Last page (optional)
+#   - One image per page (charts and process models), with metrics table for process models
+# Last page 
 #   - Reproducibility footnote (runtime + config snapshot)
 
 
