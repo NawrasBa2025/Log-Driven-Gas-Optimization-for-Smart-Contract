@@ -9,6 +9,7 @@ import sys, platform, hashlib, tempfile
 import numpy as np
 import yaml
 from PIL import Image
+import matplotlib
 from matplotlib import pyplot as plt
 
 # ReportLab – High-level (Platypus)
@@ -33,7 +34,7 @@ from pm4py.algo.evaluation.replay_fitness import algorithm as fitness_evaluator
 from pm4py.algo.evaluation.precision import algorithm as precision_evaluator
 from pm4py.algo.evaluation.generalization import algorithm as generalization_evaluator
 
-import matplotlib
+
 import reportlab
 import pm4py
 import PIL
@@ -41,8 +42,7 @@ import PIL
 # ========================
 # Config
 # ========================
-# All configuration is loaded from config.yaml in the current directory. change parameter to match your environment
-# note that you can define default values for missing keys
+# All configuration is loaded from config.yaml in the current directory.
 CONFIG_PATH = "config.yaml"
 
 def load_config(config_path):
@@ -77,7 +77,7 @@ MAX_SEQ_SUGGESTIONS = config.get("MAX_SEQ_SUGGESTIONS", 10)  # Max sequences sho
 MAX_L = int(config.get("MAX_SEQUENCE_LENGTH", 5))                        # Max sequence length checked
 FALLBACK_USER_FROM_TRACE = config.get("FALLBACK_USER_FROM_TRACE", True)  # Use trace attr as user when org:resource missing
 TRACE_USER_ATTR = config.get("TRACE_USER_ATTR", "concept:name")         # Trace-level attr to use as user fallback
-SEVERITY_LIMITS = config.get("Severity_limits", {"heigh":3, "medium":2})  # Thresholds for severity levels
+SEVERITY_LIMITS = config.get("Severity_limits", {"high":3, "medium":2})  # Thresholds for severity levels
 # Create output directory (robust)
 out_dir = os.path.dirname(PDF_OUTPUT_PATH)
 if out_dir:
@@ -174,9 +174,9 @@ def file_sha256(path, chunk_size=8192):
 
 # DETECTOR:
 # 1 Out-of-Gas Exception
-# 2 Redundancy (same activity repeated back-to-back per user in a trace)
-# 3 Merge candidates (very short time between two consecutive user events)
-# 4 Short-time Sequences (windows of 3..MAX_L inside threshold)
+# 2 Redundancy
+# 3 Merge candidates
+# 4 Short-time Sequences
 # 5 Long Traces
 # Notes:
 # - "user" falls back to the trace attribute TRACE_USER_ATTR when USER_KEY is missing.
@@ -188,7 +188,7 @@ def generate_analysis_and_charts(file_path):
     root = tree.getroot()
     traces = root.findall('.//trace')
 
-    trace_attrs_by_idx = {}  # NEW: keep trace-level attributes per trace
+    trace_attrs_by_idx = {}  # keep trace-level attributes per trace
     raw_merge_suggestions = defaultdict(int)
     redundant = defaultdict(int)
     sequences = defaultdict(int)
@@ -297,7 +297,7 @@ def generate_analysis_and_charts(file_path):
         top_long_traces = []
     # Map counts to severity buckets for reporting
     def sev_from_count(cnt):
-        if cnt >= SEVERITY_LIMITS.get('heigh',3):
+        if cnt >= SEVERITY_LIMITS.get('high',3):
             return "High"
         if cnt >= SEVERITY_LIMITS.get('medium',2):
             return "Medium"
@@ -326,7 +326,7 @@ def generate_analysis_and_charts(file_path):
     if isinstance(MAX_SEQ_SUGGESTIONS, int) and MAX_SEQ_SUGGESTIONS >= 0:
         sequence_candidates = sequence_candidates[:MAX_SEQ_SUGGESTIONS]
     for seq, count in sequence_candidates:
-        sev = "High" if count >= SEVERITY_LIMITS.get('heigh', 5) else "Medium"
+        sev = "High" if count >= SEVERITY_LIMITS.get('high', 5) else "Medium"
         grouped["Sequences"].append({"sev": sev, "count": count, "text": f"{count}× {' → '.join(seq)}"})
 
     if features.get('out_of_gas_exception', True):
@@ -344,19 +344,23 @@ def generate_analysis_and_charts(file_path):
                 "text": f"'{activity}' @ {timestamp} (gas==gasLimit=={gas})"
             })
 
-    for trace_idx, length in top_long_traces:
-        ident_val = trace_attrs_by_idx.get(trace_idx, {}).get(LONG_TRACE_IDENTIFIER)
-        ident_chunk = (
-            f'/ Identifier : key="{LONG_TRACE_IDENTIFIER}" value="{ident_val}"'
-            if ident_val not in (None, "")
-            else ""
-        )
     if trace_length_enabled:
+        # Use the richer entry text from Version A (with trace index + optional identifier)
         for trace_idx, length in top_long_traces:
+            ident_val = trace_attrs_by_idx.get(trace_idx, {}).get(LONG_TRACE_IDENTIFIER)
+            ident_chunk = (
+                f'/ Identifier : key="{LONG_TRACE_IDENTIFIER}" value="{ident_val}"'
+                if ident_val not in (None, "")
+                else ""
+            )
             grouped["Trace Length"].append({
                 "sev": "High",
                 "count": length,
-                "text": f"Trace #{trace_idx}: {length} activities (threshold {trace_length_threshold})"
+                "text": (
+                    f" {length} activities "
+                    f"(threshold {trace_length_threshold} / Position within the XES file (trace index): {trace_idx}"
+                    f"{(' ' if ident_chunk else '')}{ident_chunk})"
+                ),
             })
 
     # Severity distribution for charts
@@ -455,7 +459,7 @@ def generate_temp_process_model(xes_path):
                 pn_visualizer.save(gviz, tmp.name)
                 results["alpha_miner"] = tmp.name
             except Exception as e:
-                print("⚠️ Konnte Alpha-Miner-Modell nicht rendern (Graphviz installiert?).", e)
+                print(" Konnte Alpha-Miner-Modell nicht rendern (Graphviz installiert?).", e)
 
     if miners_cfg.get("heuristics_miner", False):
         with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
@@ -465,7 +469,7 @@ def generate_temp_process_model(xes_path):
                 pn_visualizer.save(gviz, tmp.name)
                 results["heuristics_miner"] = tmp.name
             except Exception as e:
-                print("⚠️ Konnte Heuristics-Miner-Modell nicht rendern.", e)
+                print(" Konnte Heuristics-Miner-Modell nicht rendern.", e)
 
     if miners_cfg.get("inductive_miner", False):
         with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
@@ -476,7 +480,7 @@ def generate_temp_process_model(xes_path):
                 pn_visualizer.save(gviz, tmp.name)
                 results["inductive_miner"] = tmp.name
             except Exception as e:
-                print("⚠️ Konnte Inductive-Miner-Modell nicht rendern.", e)
+                print(" Konnte Inductive-Miner-Modell nicht rendern.", e)
 
     return results
 
@@ -560,7 +564,7 @@ def page_frames_two_cols(doc):
 def title_section():
     """Title + a little breathing room; keep clean (no meta-line)."""
     story = []
-    story.append(Paragraph("Optimization Report for XES Analysis", styles["H1"]))
+    story.append(Paragraph("Optimization Report", styles["H1"]))
     story.append(Spacer(1, 6))
     return story
 
@@ -749,7 +753,7 @@ def save_to_pdf(pdf_path, grouped_suggestions, summary_dict, image_paths, metric
             if os.path.exists(path):
                 os.remove(path)
         except PermissionError:
-            print(f"⚠️ Warning: could not delete file: {path}")
+            print(f" Warning: could not delete file: {path}")
 
 # ========================
 # Main
@@ -757,24 +761,24 @@ def save_to_pdf(pdf_path, grouped_suggestions, summary_dict, image_paths, metric
 
 if __name__ == "__main__":
     if not os.path.exists(LOG_FILE_PATH):
-        print(f"❌ XES file not found: {LOG_FILE_PATH}")
+        print(f" XES file not found: {LOG_FILE_PATH}")
         sys.exit(1)
 
-    print("🔍 Analyzing XES...")
+    print(" Analyzing XES...")
     grouped, summary, chart_paths, meta = generate_analysis_and_charts(LOG_FILE_PATH)
 
-    print("📈 Generating temporary process model...")
+    print(" Generating temporary process model...")
     model_img_paths = generate_temp_process_model(LOG_FILE_PATH)
     chart_paths.update(model_img_paths)
 
-    print("📊 Computing metrics...")
+    print(" Computing metrics...")
     metrics = analyze_event_log(LOG_FILE_PATH)
 
-    print("🧪 Collecting runtime context & parameter snapshot...")
+    print(" Collecting runtime context & parameter snapshot...")
     runtime_ctx = get_runtime_context()
     param_text = build_param_snapshot(config=config, meta=meta, runtime_ctx=runtime_ctx)
 
-    print("📝 Creating PDF...")
+    print(" Creating PDF...")
     save_to_pdf(
         PDF_OUTPUT_PATH,
         grouped_suggestions=grouped,
@@ -784,4 +788,4 @@ if __name__ == "__main__":
         parameter_footnote=param_text
     )
 
-    print(f"✅ Done! PDF saved at:\n{PDF_OUTPUT_PATH}")
+    print(f" Done! PDF saved at:\n{PDF_OUTPUT_PATH}")
