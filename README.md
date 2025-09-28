@@ -4,12 +4,7 @@ Log-Driven Gas Optimization for Smart Contracts is a local, YAML-configured Pyth
 
 See the Wiki for configuration keys and detector definitions.
 
----
-> **⚠️ Memory & performance warning**  
-> XES logs can be very large. Loading and analyzing big logs may consume significant RAM and can freeze or crash your system if the hardware is insufficient.  
-> **Tips:** start with a smaller sample (e.g., first *N* traces), filter the log before analysis, close memory‑hungry apps, and prefer chunked/streamed processing when possible.
 
----
 
 ## Project structure
 
@@ -29,7 +24,8 @@ See the Wiki for configuration keys and detector definitions.
 
 ## Event log datasets (XES)
 
-These are the smart-contract execution logs used during development and testing:
+> **Note:** Use any of the following three smart-contract event logs as input to try the code. They come from the open collection of resources for process mining on blockchain data: https://ingo-weber.github.io/dapp-data/ 
+**Recommended:** start with **Augur** (it’s smaller than the others). With Augur you can run out-of-the-box—no YAML changes needed; the defaults already match the log (`LOG_FILE_PATH: "./augur.xes"`, `USER_KEY: "requester"`, `STATUS_KEY: "txSuccessful"`, `GAS_KEY: "gasUsed"`, `GAS_LIMIT_KEY: "gas"`, `LONG_TRACE_IDENTIFIER: "ident:piid"`).
 
 - **Augur** — XES  
   Source: <https://ingo-weber.github.io/dapp-data/data/Augur.xes>  
@@ -43,7 +39,7 @@ These are the smart-contract execution logs used during development and testing:
   Source: <https://github.com/ingo-weber/dapp-data/blob/master/data/Final_Forsage.xes.gz?raw=true>  
   **Warning:** For memory/safety reasons we analyzed only the **first 155,931 traces** from this log.
 
-> If you use other logs, prefer `.xes` or `.xes.gz`. Many XES toolkits can read gzipped files directly.
+
 
 ---
 
@@ -103,16 +99,16 @@ Create `config.yaml` with these following keys.
 
 ```yaml
 # --- File paths ---
-LOG_FILE_PATH: "./your-log.xes"
+LOG_FILE_PATH: "./augur.xes"
 PDF_OUTPUT_PATH: "./report.pdf"
 
 # --- XES attribute keys (remap to match your log) ---
 TIMESTAMP_KEY: "time:timestamp"
 ACTIVITY_KEY: "concept:name"
-USER_KEY: "org:resource"
-STATUS_KEY: "status"
-GAS_KEY: "gas"
-GAS_LIMIT_KEY: "gasLimit"
+USER_KEY: "requester"
+STATUS_KEY: "txSuccessful"
+GAS_KEY: "gasUsed"
+GAS_LIMIT_KEY: "gas"
 LONG_TRACE_IDENTIFIER: "ident:piid"
 
 # --- Feature flags (enable/disable detectors) ---
@@ -131,15 +127,15 @@ miners:
 
 # --- Severity bucketing (counts -> Low/Medium/High) ---
 Severity_limits:
-  high: 3
-  medium: 2
+  high: 220
+  medium: 70
 
 # --- Detector thresholds & limits ---
-TIME_THRESHOLD_SECONDS: 10
+TIME_THRESHOLD_SECONDS: 60
 MAX_SEQUENCE_LENGTH: 7
-MAX_SEQ_SUGGESTIONS: 3
-PERCENTILE: 80
-NUM_LONGEST_TRACES: 5
+MAX_SEQ_SUGGESTIONS: 5
+PERCENTILE: 99
+MAX_LONG_TRACE_SUGGESTIONS: 5
 MAX_OUT_OF_GAS_SUGGESTIONS: 5
 
 # --- User fallback (when USER_KEY is missing) ---
