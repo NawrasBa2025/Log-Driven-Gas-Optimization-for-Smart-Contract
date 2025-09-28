@@ -5,6 +5,47 @@ Log-Driven Gas Optimization for Smart Contracts is a local, YAML-configured Pyth
 See the Wiki for configuration keys and detector definitions.
 
 ---
+> **⚠️ Memory & performance warning**  
+> XES logs can be very large. Loading and analyzing big logs may consume significant RAM and can freeze or crash your system if the hardware is insufficient.  
+> **Tips:** start with a smaller sample (e.g., first *N* traces), filter the log before analysis, close memory‑hungry apps, and prefer chunked/streamed processing when possible.
+
+---
+
+## Project structure
+
+```text
+.
+├── Automated/
+│   ├── README.md                 # Notes for automated runs
+│   ├── automated-config.yaml     # Example config for automated runs
+│   └── automated.py              # Batch runner / CLI entry point
+├── SmartContractAnalyzer.py      # Core analysis logic
+├── config.yaml                   # Default configuration
+├── LICENSE
+└── README.md                     # This file
+```
+
+---
+
+## Event log datasets (XES)
+
+These are the smart-contract execution logs used during development and testing:
+
+- **Augur** — XES  
+  Source: <https://ingo-weber.github.io/dapp-data/data/Augur.xes>  
+  Notes: Good medium-sized log for functional checks and pipeline sanity tests.
+
+- **ChickenHunt** — XES (gzipped)  
+  Source: <https://github.com/ingo-weber/dapp-data/blob/master/data/Final_ChickenHunt.xes.gz?raw=true>  
+  Notes: Compressed XES; demonstrates the tool’s ability to work with typical on-chain game workflows.
+
+- **Forsage** — XES (gzipped)  
+  Source: <https://github.com/ingo-weber/dapp-data/blob/master/data/Final_Forsage.xes.gz?raw=true>  
+  **Warning:** For memory/safety reasons we analyzed only the **first 155,931 traces** from this log.
+
+> If you use other logs, prefer `.xes` or `.xes.gz`. Many XES toolkits can read gzipped files directly.
+
+---
 
 ## Installation
 
