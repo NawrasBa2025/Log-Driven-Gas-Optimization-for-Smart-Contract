@@ -86,7 +86,7 @@ features:
 miners:
   alpha_miner: false
   heuristics_miner: false
-  inductive_miner: false
+  inductive_miner: true
 
 # --- Severity bucketing (counts -> Low/Medium/High) ---
 Severity_limits:
