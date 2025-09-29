@@ -31,8 +31,7 @@ runs:
   - name: R1
     TIME_THRESHOLD_SECONDS: 10
     MAX_SEQUENCE_LENGTH: 5
-    # PERCENTILE: 95  # (optional per-run override)
-    PERCENTILE: 81  # (optional per-run override)
+    PERCENTILE: 81  
 
   - name: R2
     TIME_THRESHOLD_SECONDS: 20
