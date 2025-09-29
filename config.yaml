@@ -22,7 +22,7 @@ miners:
   inductive_miner: true
 
 Severity_limits:
-  heigh: 220
+  high: 220
   medium: 70
 
 TIME_THRESHOLD_SECONDS: 60
@@ -34,6 +34,7 @@ MAX_OUT_OF_GAS_SUGGESTIONS: 5
 
 FALLBACK_USER_FROM_TRACE: true
 TRACE_USER_ATTR: "concept:name"
+
 
 
 
