@@ -326,7 +326,7 @@ def generate_analysis_and_charts(file_path):
     if isinstance(MAX_SEQ_SUGGESTIONS, int) and MAX_SEQ_SUGGESTIONS >= 0:
         sequence_candidates = sequence_candidates[:MAX_SEQ_SUGGESTIONS]
     for seq, count in sequence_candidates:
-        sev = "High" if count >= SEVERITY_LIMITS.get('high', 5) else "Medium"
+        sev = sev_from_count(count)
         grouped["Sequences"].append({"sev": sev, "count": count, "text": f"{count}× {' → '.join(seq)}"})
 
     if features.get('out_of_gas_exception', True):
