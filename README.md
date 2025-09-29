@@ -139,7 +139,7 @@ MAX_LONG_TRACE_SUGGESTIONS: 5
 MAX_OUT_OF_GAS_SUGGESTIONS: 5
 
 # --- User fallback (when USER_KEY is missing) ---
-FALLBACK_USER_FROM_TRACE: false
+FALLBACK_USER_FROM_TRACE: true
 TRACE_USER_ATTR: "concept:name"
 ```
 
