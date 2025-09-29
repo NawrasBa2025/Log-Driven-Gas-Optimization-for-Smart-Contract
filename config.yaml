@@ -3,11 +3,11 @@ PDF_OUTPUT_PATH: "./report.pdf"
 
 TIMESTAMP_KEY: "time:timestamp"
 ACTIVITY_KEY: "concept:name"
-USER_KEY: ""
-STATUS_KEY: ""
-GAS_KEY: ""
-GAS_LIMIT_KEY: ""
-LONG_TRACE_IDENTIFIER: ""
+USER_KEY: "requester"
+STATUS_KEY: "txSuccessful"
+GAS_KEY: "gasUsed"
+GAS_LIMIT_KEY: "gas"
+LONG_TRACE_IDENTIFIER: "ident:piid"
 
 features:
   merge: true
@@ -22,8 +22,8 @@ miners:
   inductive_miner: true
 
 Severity_limits:
-  heigh: 100
-  medium: 50
+  heigh: 220
+  medium: 70
 
 TIME_THRESHOLD_SECONDS: 60
 MAX_SEQUENCE_LENGTH: 5
@@ -32,7 +32,8 @@ PERCENTILE: 99
 MAX_LONG_TRACE_SUGGESTIONS: 5
 MAX_OUT_OF_GAS_SUGGESTIONS: 5
 
-FALLBACK_USER_FROM_TRACE: false
+FALLBACK_USER_FROM_TRACE: true
 TRACE_USER_ATTR: "concept:name"
+
 
 
